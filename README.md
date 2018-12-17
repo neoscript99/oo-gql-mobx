@@ -1,3 +1,11 @@
+# 工程问题
+- 类集成之后，成员变量未初始化
+```
+//this.allList is undefined
+return this.allList.find(function (param) {
+        return param.code === 'LogoFileInfoId';
+      });
+```
 # mobx在taro中的限制
 - 只有在react控件的render中将store对应的属性保存到本地变量，该属性修改时，mobx才会通知observer控件
 - 以上的原理是：render中的本地变量，taro会处理到state
