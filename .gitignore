@@ -1,0 +1,9 @@
+dist/
+.temp/
+node_modules/
+yarn.lock
+.history/
+package-lock.json
+.idea
+.rn_temp/
+build/
