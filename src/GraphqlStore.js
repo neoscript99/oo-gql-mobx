@@ -72,7 +72,7 @@ class GraphqlStore extends MessageStore {
   listPage({listHandler, isAppend = false, ...rest}) {
     //查询第一页的时候，清空allList
     if (this.pageInfo.currentPage === 1)
-      this.allList.clear();
+      this.allList = [];
     if (!listHandler)
       listHandler = ({results, totalCount}) => {
         this.pageList = results;

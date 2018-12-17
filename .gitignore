@@ -8,3 +8,4 @@ package-lock.json
 .rn_temp/
 build/
 /lib/
+yarn-error.log
