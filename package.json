@@ -1,6 +1,6 @@
 {
-  "name": "oo-gql-mobx",
-  "version": "1.0.6",
+  "name": "oo-graphql-mobx",
+  "version": "1.0.1",
   "description": "Object oriented graphql client integrate with mobx.",
   "main": "lib/index.js",
   "scripts": {
@@ -30,6 +30,7 @@
     "@babel/core": "^7.2.2",
     "@babel/plugin-proposal-class-properties": "^7.2.1",
     "@babel/plugin-proposal-decorators": "^7.2.2",
+    "@babel/plugin-proposal-object-rest-spread": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
     "babel-eslint": "^10.0.1",
     "eslint": "^4.19.1",
