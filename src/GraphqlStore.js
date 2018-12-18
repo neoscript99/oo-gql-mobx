@@ -1,13 +1,13 @@
-import {observable, action, decorate} from "mobx";
+import { observable, action, decorate } from "mobx";
 import MessageStore from './MessageStore'
 import GraphqlClient from './GraphqlClient'
-import {processCriteriaOrder, processCriteriaPage} from "./ooGrahpqlMobxUtils";
+import { processCriteriaOrder, processCriteriaPage } from "./ooGrahpqlMobxUtils";
 
 class GraphqlStore extends MessageStore {
-  currentItem = {id: ''};
+  currentItem = { id: '' };
   allList = [];
   pageList = [];
-  pageInfo = {currentPage: 1, pageSize: 10, totalCount: -1, isLastPage: false};
+  pageInfo = { currentPage: 1, pageSize: 10, totalCount: -1, isLastPage: false };
 
   /**
    *
@@ -15,14 +15,14 @@ class GraphqlStore extends MessageStore {
    * @param graphqlClient
    * @param dependStoreMap 依赖的其它store，格式如下：{aaStore:aa,bbStore:bb}
    */
-  constructor({domain, graphqlClient, dependMap = {}, messageHandlerMap, pageSize}) {
+  constructor({ domain, graphqlClient, dependMap = {}, messageHandlerMap, pageSize }) {
     super(messageHandlerMap);
     this.domain = domain;
-    const client = graphqlClient ? graphqlClient : new GraphqlClient({uri: '/graphql'});
+    const client = graphqlClient ? graphqlClient : new GraphqlClient({ uri: '/graphql' });
     this.log = client.log;
     //client不能作为类成员变量，导致 mobx runReaction Converting circular structure to JSON
     //原因应该是mobx会对store做toJson操作，而apollo client中有嵌套依赖内容
-    this.graphqlPromise = client.getFields(domain).then((fields) => ({client, fields}));
+    this.graphqlPromise = client.getFields(domain).then((fields) => ({ client, fields }));
     //dependMap 也不做成员变量，防止嵌套依赖，序列化toJson的时候死循环
     this.dependPromise = Promise.resolve(dependMap);
     if (pageSize)
@@ -35,23 +35,23 @@ class GraphqlStore extends MessageStore {
    * @param dependMap
    */
   addDependStore(dependMap) {
-    this.dependPromise = this.dependPromise.then(map => ({...map, ...dependMap}))
+    this.dependPromise = this.dependPromise.then(map => ({ ...map, ...dependMap }))
   }
 
   @action
   listAll(criteria) {
-    this.list({criteria})
+    this.list({ criteria })
   }
 
   @action
-  list({criteria = {}, listHandler, pageInfo, orders = this.defaultOrders}) {
+  list({ criteria = {}, listHandler, pageInfo, orders = this.defaultOrders }) {
     if (pageInfo)
-      processCriteriaPage({criteria, ...pageInfo})
+      processCriteriaPage({ criteria, ...pageInfo })
     if (orders && orders.length > 0)
       processCriteriaOrder(criteria, orders)
     //list需等待graphqlPromise执行完成
     this.graphqlPromise
-      .then(({client, fields}) =>
+      .then(({ client, fields }) =>
         client.list(this.domain, fields, criteria)
       )
       .then(data =>
@@ -69,12 +69,12 @@ class GraphqlStore extends MessageStore {
   }
 
   @action
-  listPage({listHandler, isAppend = false, ...rest}) {
+  listPage({ listHandler, isAppend = false, ...rest }) {
     //查询第一页的时候，清空allList
     if (this.pageInfo.currentPage === 1)
       this.allList = [];
     if (!listHandler)
-      listHandler = ({results, totalCount}) => {
+      listHandler = ({ results, totalCount }) => {
         this.pageList = results;
         this.pageInfo.totalCount = totalCount;
         this.pageInfo.isLastPage = (results.length < this.pageInfo.pageSize || this.pageInfo.pageSize * this.pageInfo.currentPage >= totalCount)
@@ -83,13 +83,13 @@ class GraphqlStore extends MessageStore {
         else
           this.allList = results;
       }
-    this.list({listHandler, pageInfo: this.pageInfo, ...rest})
+    this.list({ listHandler, pageInfo: this.pageInfo, ...rest })
   }
 
   @action
   listNextPage(param) {
     if (this.pageInfo.isLastPage)
-      this.newMessage({text: '已经到底了'})
+      this.newMessage({ text: '已经到底了' })
     else {
       this.pageInfo.currentPage++;
       this.listPage(param);
@@ -111,34 +111,37 @@ class GraphqlStore extends MessageStore {
   @action
   changeCurrentItem(currentItem) {
     this.currentItem = currentItem;
+    return currentItem;
   }
 
   @action
   create(newItem) {
-    this.graphqlPromise
-      .then(({client, fields}) => client.create(this.domain, fields, newItem))
+    return this.graphqlPromise
+      .then(({ client, fields }) => client.create(this.domain, fields, newItem))
       .then(data => {
         this.newSuccess('保存成功');
         this.currentItem = data;
+        return data;
       })
       .catch(this.newGraphqlError)
   }
 
   @action
   update(id, updateItem) {
-    this.graphqlPromise
-      .then(({client, fields}) => client.update(this.domain, fields, id, updateItem))
+    return this.graphqlPromise
+      .then(({ client, fields }) => client.update(this.domain, fields, id, updateItem))
       .then(data => {
         this.newSuccess('更新成功');
         this.currentItem = data;
+        return data;
       })
       .catch(this.newGraphqlError)
   }
 
   @action
   get(id) {
-    this.graphqlPromise
-      .then(({client, fields}) => client.get(this.domain, fields, id))
+    return this.graphqlPromise
+      .then(({ client, fields }) => client.get(this.domain, fields, id))
       .then(data => this.changeCurrentItem(data))
       .catch(this.newGraphqlError)
   }
